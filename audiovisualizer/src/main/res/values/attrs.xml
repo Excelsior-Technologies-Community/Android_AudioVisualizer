@@ -10,5 +10,11 @@
             <enum name="circle" value="2" />
             <enum name="stackedBars" value="3" />
         </attr>
+        <attr name="av_enableGradient" format="boolean" />
+        <attr name="av_gradientStartColor" format="color" />
+        <attr name="av_gradientEndColor" format="color" />
+
+        <attr name="av_enableGlow" format="boolean" />
+        <attr name="av_glowRadius" format="dimension" />
     </declare-styleable>
 </resources>

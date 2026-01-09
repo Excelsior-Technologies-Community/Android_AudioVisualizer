@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:background="@color/white"
+    android:gravity="center"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,10 +14,17 @@
         android:id="@+id/audioVisualizer"
         android:layout_width="match_parent"
         android:layout_height="220dp"
+
         app:av_style="circle"
-        app:av_barColor="#00FF00"
-        app:av_barCount="48"
-        app:av_barWidth="6dp" />
+        android:layout_gravity="center"
+
+        app:av_enableGradient="true"
+        app:av_gradientStartColor="#00E5FF"
+        app:av_gradientEndColor="#FF00FF"
+
+        app:av_enableGlow="true"
+        app:av_glowRadius="24dp" />
+
 
 
 </LinearLayout>

@@ -17,40 +17,28 @@ class AudioVisualizerView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
-
-    /* =========================
-       Paint & Config
-       ========================= */
-
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private var barColor = Color.GREEN
     private var barCount = 40
     private var barWidth = 8f
-
-    /* =========================
-       Audio & Visualizer
-       ========================= */
-
     private var visualizer: Visualizer? = null
-
-    // Smoothed audio buffer (single source of truth)
     private var smoothedData = FloatArray(128)
     private val smoothingFactor = 0.2f
-
-    /* =========================
-       Style
-       ========================= */
-
     private var visualizerStyle = VisualizerStyle.BAR
 
-    /* =========================
-       Init
-       ========================= */
+    private var enableGradient = false
+    private var gradientStartColor = Color.CYAN
+    private var gradientEndColor = Color.MAGENTA
+
+    private var enableGlow = false
+    private var glowRadius = 20f
+
 
     init {
         val ta = context.obtainStyledAttributes(attrs, R.styleable.AudioVisualizerView)
 
+        // Basic config
         barColor = ta.getColor(
             R.styleable.AudioVisualizerView_av_barColor,
             barColor
@@ -66,25 +54,56 @@ class AudioVisualizerView @JvmOverloads constructor(
             barWidth
         )
 
+        // Style
         val styleIndex = ta.getInt(
             R.styleable.AudioVisualizerView_av_style,
             0
         )
         visualizerStyle = VisualizerStyle.fromIndex(styleIndex)
 
+        // ✅ Gradient
+        enableGradient = ta.getBoolean(
+            R.styleable.AudioVisualizerView_av_enableGradient,
+            false
+        )
+
+        gradientStartColor = ta.getColor(
+            R.styleable.AudioVisualizerView_av_gradientStartColor,
+            barColor
+        )
+
+        gradientEndColor = ta.getColor(
+            R.styleable.AudioVisualizerView_av_gradientEndColor,
+            barColor
+        )
+
+        // ✅ Glow
+        enableGlow = ta.getBoolean(
+            R.styleable.AudioVisualizerView_av_enableGlow,
+            false
+        )
+
+        glowRadius = ta.getDimension(
+            R.styleable.AudioVisualizerView_av_glowRadius,
+            20f
+        )
+
+        // ✅ Recycle ONLY AT THE END
         ta.recycle()
 
+        // Paint config
         paint.color = barColor
         paint.strokeWidth = barWidth
         paint.style = Paint.Style.STROKE
     }
 
-    /* =========================
-       Drawing
-       ========================= */
+
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
+        applyGradient()
+        applyGlow()
 
         when (visualizerStyle) {
             VisualizerStyle.BAR -> drawBars(canvas)
@@ -94,9 +113,7 @@ class AudioVisualizerView @JvmOverloads constructor(
         }
     }
 
-    /* =========================
-       Public API
-       ========================= */
+
 
     fun setAudioSessionId(sessionId: Int) {
         release()
@@ -155,10 +172,6 @@ class AudioVisualizerView @JvmOverloads constructor(
         visualizer?.release()
         visualizer = null
     }
-
-    /* =========================
-       Drawing Implementations
-       ========================= */
 
     private fun drawBars(canvas: Canvas) {
         val barSpacing = width / barCount.toFloat()
@@ -231,9 +244,6 @@ class AudioVisualizerView @JvmOverloads constructor(
         }
     }
 
-    /* =========================
-       Smoothing
-       ========================= */
 
     private fun smoothAudioData(data: ByteArray) {
         val size = min(data.size, smoothedData.size)
@@ -243,4 +253,76 @@ class AudioVisualizerView @JvmOverloads constructor(
             smoothedData[i] += smoothingFactor * (target - smoothedData[i])
         }
     }
+
+    private fun applyGradient() {
+        if (!enableGradient) {
+            paint.shader = null
+            return
+        }
+
+        paint.shader = when (visualizerStyle) {
+
+            VisualizerStyle.CIRCLE -> {
+                android.graphics.RadialGradient(
+                    width / 2f,
+                    height / 2f,
+                    min(width, height) / 2f,
+                    gradientStartColor,
+                    gradientEndColor,
+                    android.graphics.Shader.TileMode.CLAMP
+                )
+            }
+
+            else -> {
+                android.graphics.LinearGradient(
+                    0f,
+                    height.toFloat(),
+                    0f,
+                    0f,
+                    gradientStartColor,
+                    gradientEndColor,
+                    android.graphics.Shader.TileMode.CLAMP
+                )
+            }
+        }
+    }
+
+    private fun applyGlow() {
+        if (enableGlow) {
+            setLayerType(LAYER_TYPE_SOFTWARE, paint)
+            paint.maskFilter =
+                android.graphics.BlurMaskFilter(glowRadius, android.graphics.BlurMaskFilter.Blur.NORMAL)
+        } else {
+            paint.maskFilter = null
+            setLayerType(LAYER_TYPE_HARDWARE, null)
+        }
+    }
+
+    fun enableGradient(
+        startColor: Int,
+        endColor: Int
+    ) {
+        enableGradient = true
+        gradientStartColor = startColor
+        gradientEndColor = endColor
+        invalidate()
+    }
+
+    fun disableGradient() {
+        enableGradient = false
+        invalidate()
+    }
+
+    fun enableGlow(radius: Float = 20f) {
+        enableGlow = true
+        glowRadius = radius
+        invalidate()
+    }
+
+    fun disableGlow() {
+        enableGlow = false
+        invalidate()
+    }
+
+
 }
