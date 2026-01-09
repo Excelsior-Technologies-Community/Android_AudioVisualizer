@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="AudioVisualizerView">
+        <attr name="av_barColor" format="color" />
+        <attr name="av_barCount" format="integer" />
+        <attr name="av_barWidth" format="dimension" />
+        <attr name="av_style">
+            <enum name="bar" value="0" />
+            <enum name="wave" value="1" />
+            <enum name="circle" value="2" />
+            <enum name="stackedBars" value="3" />
+        </attr>
+    </declare-styleable>
+</resources>
