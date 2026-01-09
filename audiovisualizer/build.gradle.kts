@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    id("maven-publish")
 }
 
 android {
@@ -42,3 +43,24 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+
+                from(components["release"])
+
+                // CHANGE THIS TO YOUR USERNAME
+                groupId = "com.github.Excelsior-Technologies-Community"
+
+                // THIS CAN BE YOUR LIBRARY NAME
+                artifactId = "audiovisualizer"
+
+                // This can be anything for now
+                version = "1.0.0"
+            }
+        }
+    }
+}
+
